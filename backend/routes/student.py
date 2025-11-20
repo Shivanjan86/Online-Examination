@@ -198,23 +198,27 @@ def submit_answer():
         cursor.close()
         conn.close()
 
-# Finish Exam and Calculate Score
+# Finish Exam and Get Final Score
+# Score is now calculated automatically by trigger - just fetch it!
 @student_bp.route('/attempt/<int:attemptid>/finish', methods=['POST'])
 def finish_exam(attemptid):
     conn = get_db_connection()
-    proc_cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
-        args = (attemptid, 0)
-        result_args = proc_cursor.callproc('finalizeAttempt', args)
-        final_score = result_args[1]
-        conn.commit()
+        # Score is automatically calculated by trigger, just read it
+        cursor.execute("SELECT score FROM Attempt WHERE id = %s", (attemptid,))
+        result = cursor.fetchone()
+        
+        if not result:
+            return jsonify({"status": "error", "message": "Attempt not found"}), 404
+        
+        final_score = result['score']
         return jsonify({"status": "success", "message": "Exam finished", "finalScore": final_score}), 200
     except Exception as err:
-        conn.rollback()
         print(f"Error: {err}")
         return jsonify({"status": "error", "message": "An error occurred"}), 500
     finally:
-        proc_cursor.close()
+        cursor.close()
         conn.close()
 
 # Get Results for a Single Attempt 
