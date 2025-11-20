@@ -198,8 +198,7 @@ def submit_answer():
         cursor.close()
         conn.close()
 
-# Finish Exam and Get Final Score
-# Score is now calculated automatically by trigger - just fetch it!
+
 @student_bp.route('/attempt/<int:attemptid>/finish', methods=['POST'])
 def finish_exam(attemptid):
     conn = get_db_connection()
